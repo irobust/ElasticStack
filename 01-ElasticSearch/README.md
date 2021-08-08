@@ -66,7 +66,7 @@ Create new file and set filename to reqs
 curl -s -H "Content-Type: application/x-ndjson" -XPOST localhost:9200/_bulk --data-binary "@reqs"; echo
 ```
 
-# Check Kibana
+# Check with Kibana
 ```
 GET /my-test
 GET /my-test/my-type/1
