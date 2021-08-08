@@ -102,6 +102,25 @@ GET /bank
 3. Custom index pattern id (Optional)
 4. Edit fields mapping (Must verify it later)
 
+### Load timestamp data
+#### Step 1: Create index
+```
+PUT /securityinfo
+```
+#### Step 2: Pushing data
+```
+curl -X POST http://localhost:9200/securityinfo/_doc/ -H 'Content-Type: application/json' -d'
+{
+    "@timestamp": 2021-01-05T10:10:10",
+    "message":  "Protocol Port MIs-Match",
+    "dst": {
+        "ip": "192.168.1.56",
+        "port": "888"
+    }
+}
+'
+```
+
 ## Index mapping
 ### Sample index mapping with GeoPoint
 #### Step 1: create mapping
@@ -173,8 +192,34 @@ GET my-index-000001/_search
   }
 }
 ```
+### Add index mapping to securityinfo
+#### Step 1: Mapping types to field
+```
+PUT /securityinfo-v2
+{
+  "mappings":{
+      "properties": {
+        "destination.ip": { "type": "ip"},
+        "destination.port": { "type": "number" },
+        "message": { "type": "text" }
+      }
+  }
+}
+```
 
-### Add mapping for lat/lon geo properties for logs
+#### Step 2: Input data through Dev Tools
+```
+PUT /securityinfo-v2
+{
+    "@timestamp": "2021-01-05T10:10:10",
+    "message":  "Protocol Port MIs-Match",
+    "destination.ip": "192.168.1.56",
+    "destination.port": "888"
+}
+```
+
+### Logging simulation
+#### Step 1: Add mapping for lat/lon geo properties for logs
 ```
 PUT /logstash-2021.07.18
 {
@@ -192,7 +237,7 @@ PUT /logstash-2021.07.18
 }
 ```
 
-### Create two more to simulate daily logs
+#### Step 2: Create two more to simulate daily logs
 ```
 PUT /logstash-2021.07.19
 {
@@ -228,12 +273,132 @@ PUT /logstash-2021.07.20
 }
 ```
 
-### Import log files
+#### Step 4: Import log files
 ```
 curl -H 'Content-Type: application/x-ndjson' -XPOST 'localhost:9200/_bulk?pretty' --data-binary @logs.jsonl
 ```
 
-### Check ElaticSearch for data
+#### Step 4: Check ElaticSearch for data
 ```
 GET /_cat/indices/logstash-*
+```
+
+## Using analyzer in ElasticSearch
+### Testing standard analyzer
+#### Step 1: Check standard analyzer capability
+```
+GET /_analyze
+{
+  "analyzer": "standard",
+  "text": "https://blog.example.com/wp-content/plugins/evil.php?cmd=cat+%2Fetc%2Fpasswd",
+  "explain": true
+}
+```
+
+#### Step 2: Add some data
+```
+PUT /demo-url
+PUT /demo-url/_doc/1
+{
+  "url.original": "https://blog.example.com/wp-content/plugins/evil.php?cmd=cat+%2Fetc%2Fpasswd"
+}
+```
+
+#### Step 3: Query and Filter data
+1. using query: `url.original:wp-content`
+2. using filter: `url.original is wp-content`
+3. Select `Edit as Query DSL`
+4. Change `match_phrase` to `term` (You'll get no result)
+
+#### Step 4: Try to analyze with standard, simple, keywords and pattern
+```
+GET /_analyze
+{
+  "analyzer": "standard",
+  "text": "https://blog.example.com/wp-content/plugins/evil.php?cmd=cat+%2Fetc%2Fpasswd",
+  "explain": true
+}
+
+GET /_analyze
+{
+  "analyzer": "simple",
+  "text": "https://blog.example.com/wp-content/plugins/evil.php?cmd=cat+%2Fetc%2Fpasswd",
+  "explain": true
+}
+
+GET /_analyze
+{
+  "analyzer": "keyword",
+  "text": "https://blog.example.com/wp-content/plugins/evil.php?cmd=cat+%2Fetc%2Fpasswd",
+  "explain": true
+}
+
+GET /_analyze
+{
+  "analyzer": "pattern",
+  "text": "https://blog.example.com/wp-content/plugins/evil.php?cmd=cat+%2Fetc%2Fpasswd",
+  "explain": true
+}
+```
+
+#### Step 5: Create a custom analyzer
+```
+PUT securityinfo-v3/
+{
+  "settings": {
+    "analysis": {
+        "analyzer":{
+            "url_pattern_analyzer": {
+                "type": "pattern",
+                "pattern": "\\/|\\?"
+            }
+        }
+    }
+  },
+  "mappings": {
+    "properties": {
+      "url.original": {
+        "type": "text",
+        "analyzer": "url_pattern_analyzer"
+      },
+      "destination.ip": {"type":"ip"},
+      "destination.port": {"type": "integer"},
+      "message":{
+        "type":"text",
+        "analyzer": "keyword"
+      }
+    }
+  }
+}
+```
+
+#### Step 6: Testing custom analyzer
+```
+GET securityinfo-v3/_analyze
+{
+  "field": "url.original",
+  "text": "https://blog.example.com/wp-content/plugins/evil.php?cmd=cat+%2Fetc%2Fpasswd",
+  "explain": true
+}
+```
+
+#### Step 7: Tesing keyword analyzer
+```
+GET securityinfo-v3/_analyze
+{
+  "field": "message",
+  "text": "ALERT BAD THING HAPPENING MAYBE"
+}
+```
+
+#### Step 8: Add some data 
+```
+POST /securityinfo/_doc
+{
+    "@timestamp": "2021-08-01T10:10:10",
+    "url.origin": "https://blog.example.com/wp-content/plugins/evil.php?cmd=cat+%2Fetc%2Fpasswd",
+    "message":  "Protocol Port MIs-Match",
+    "destination.ip": "192.168.1.56",
+    "destination.port": "888"
+}
 ```
