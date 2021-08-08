@@ -30,10 +30,12 @@ services:
       - elasticsearch
   
   logstash:
-    image: docker.elastic.co/logstash/logstash:7.14.0-arm64
+    image: docker.elastic.co/logstash/logstash:7.14.0
     container_name: logstash
     volumes:
       - ./settings/:/usr/share/logstash/config/
+    ports:
+      - 5043:5043
     depends_on:
       - elasticsearch
 
