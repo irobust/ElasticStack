@@ -3,10 +3,10 @@ Introduction to elasticsearch
 
 ## Start elasticsearch with docker-compose
 Start elasticsearch with docker compose
-    ```vstscli
-    cd 01-ElasticSearch
-    docker-compose up -d
-    ```
+```
+cd 01-ElasticSearch
+docker-compose up -d
+```
 ## Explore elasticsearch
 Basic REST API to manage your cluster
 
@@ -49,8 +49,8 @@ Basic REST API to manage your cluster
     DELETE /sales
     ```
 ## Bulk loading data
-### Create File with Requests (make sure to include new line at end of file)
-create file reqs
+### Create file with requests (make sure to include new line at end of file)
+Create new file and set filename to reqs
     ```json
     { "index" : { "_index" : "my-test", "_type" : "my-type", "_id" : "1" } }
     { "col1" : "val1"}
