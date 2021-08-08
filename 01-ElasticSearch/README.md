@@ -82,3 +82,20 @@ POST _bulk
 { "index" : { "_index" : "my-test-console", "_type" : "my-type", "_id" : "3" } }
 { "col1" : "val3" }
 ```
+
+## Loading sample data from elastic.co
+### Load via curl, notice the endpoint and type
+```
+cd data
+curl -H 'Content-Type: application/x-ndjson' -XPOST 'localhost:9200/bank/account/_bulk?pretty' --data-binary @accounts.jsonl
+```
+
+### Check inside ElasticSearch
+```
+GET /_cat/indices
+GET /bank
+```
+
+### set index pattern in Kibana
+    ``` Management > Uncheck time-based events > bank ```
+and View on left to see properties
