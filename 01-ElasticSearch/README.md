@@ -97,5 +97,5 @@ GET /bank
 ```
 
 ### set index pattern in Kibana
-    ``` Management > Uncheck time-based events > bank ```
+     Management > Uncheck time-based events > bank 
 and View on left to see properties
