@@ -1,2 +1,6 @@
 .vagrant
 .DS_Store
+
+01-ElasticSearch/data01/
+01-ElasticSearch/data02/
+01-ElasticSearch/data03/
