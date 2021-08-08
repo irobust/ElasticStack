@@ -1,12 +1,12 @@
 # ElasticStack step by step
 Centralize Logging with ElasticStack Demo
 
-## Prerequisit
+## Prerequisite
 * Virtualbox
 * Vagrant
 * Docker for Desktop
 
-## Vagrant Setup
+## Vagrant command for setup and destroy
 1. Install vagrant plugins (vagrant plugin install)
     ```vstscli
     vagrant plugin install vagrant-vbguest
@@ -17,10 +17,20 @@ Centralize Logging with ElasticStack Demo
     ```
 3. Access to virtualbox shell
     ```vstscli
-    vagrant ssh [box-name]
+    vagrant ssh [vm-name]
     ```
 
-## Docker compose setup
+4. Shutdown VM
+    ```vstscli
+    vagrant halt [vm-name]
+    ```
+
+5. Remove VM
+    ```vstscli
+    vagrant destroy [vm-name]
+    ```
+
+## Docker compose command for setup and destroy
 1. Run docker compose
     ```vstscli
     docker-compose up -d
