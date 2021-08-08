@@ -7,6 +7,7 @@ Start elasticsearch with docker compose
 cd 01-ElasticSearch
 docker-compose up -d
 ```
+
 ## Explore elasticsearch
 Basic REST API to manage your cluster
 
