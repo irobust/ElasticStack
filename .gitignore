@@ -1,4 +1,5 @@
 .vagrant
+02-Beat-Logstash/.vagrant/
 .DS_Store
 
 01-ElasticSearch/data01/
