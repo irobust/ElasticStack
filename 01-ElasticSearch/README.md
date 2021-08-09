@@ -112,7 +112,7 @@ PUT /securityinfo
 ```
 curl -X POST http://localhost:9200/securityinfo/_doc/ -H 'Content-Type: application/json' -d'
 {
-    "@timestamp": 2021-01-05T10:10:10",
+    "@timestamp": "2021-01-05T10:10:10",
     "message":  "Protocol Port MIs-Match",
     "dst": {
         "ip": "192.168.1.56",
@@ -186,7 +186,7 @@ GET my-index-000001/_search
         },
         "bottom_right": {
           "lat": 40,
-          "lon": -74
+          "lon": -70
         }
       }
     }
@@ -201,7 +201,7 @@ PUT /securityinfo-v2
   "mappings":{
       "properties": {
         "destination.ip": { "type": "ip"},
-        "destination.port": { "type": "number" },
+        "destination.port": { "type": "integer" },
         "message": { "type": "text" }
       }
   }
@@ -217,66 +217,67 @@ PUT /securityinfo-v2
     "destination.ip": "192.168.1.56",
     "destination.port": "888"
 }
+
+PUT /securityinfo-v2
+{
+    "@timestamp": "2021-01-05T10:10:10",
+    "message":  "Protocol Port MIs-Match",
+    "destination.ip": "192.168.1.55",
+    "destination.port": "888"
+}
 ```
 
 ### Logging simulation
 #### Step 1: Add mapping for lat/lon geo properties for logs
 ```
-PUT /logstash-2021.07.18
+POST /logstash-2021.07.18/log
 {
   "mappings": {
-    "properties": {
-        "geo": {
-            "properties": {
-                "coordinates": {
-                    "type": "geo_point"
-                }
+      "properties": {
+            "geo.coordinates": {
+              "type": "geo_point"
             }
-        }
-    }
+      }
   }
 }
 ```
 
 #### Step 2: Create two more to simulate daily logs
 ```
-PUT /logstash-2021.07.19
+POST /logstash-2021.07.19/log
 {
   "mappings": {
-    "log": {
       "properties": {
-        "geo": {
-          "properties": {
-            "coordinates": {
-              "type": "geo_point"
-            }
-          }
+            "geo": {
+              "properties": {
+                  "coordinates": {
+                      "type": "geo_point"
+                  }
+              }
         }
       }
-    }
   }
 }
-PUT /logstash-2021.07.20
+
+POST /logstash-2021.07.20/log
 {
   "mappings": {
-    "log": {
       "properties": {
-        "geo": {
-          "properties": {
-            "coordinates": {
-              "type": "geo_point"
-            }
-          }
+            "geo": {
+              "properties": {
+                  "coordinates": {
+                      "type": "geo_point"
+                  }
+              }
         }
       }
-    }
   }
 }
 ```
 
 #### Step 4: Import log files
 ```
-curl -H 'Content-Type: application/x-ndjson' -XPOST 'localhost:9200/_bulk?pretty' --data-binary @logs.jsonl
+curl -H 'Content-Type: application/json' -XPOST 'localhost:9200/_bulk?pretty' --data-binary "@data/logs.jsonl"
 ```
 
 #### Step 4: Check ElaticSearch for data
