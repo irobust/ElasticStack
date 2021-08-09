@@ -90,11 +90,11 @@ sudo apt-get install metricbeat
 sudo systemctl enable metricbeat
 
 ```
-### Step 2: Enable metricbeat
+### Step 2: Configure metricbeat
 Modify /etc/metricbeat/metricbeat.yml
 ```yaml
 output.elasticsearch:
-    hosts: ["ELASTICSEARCH_URL:5043"]
+    hosts: ["ELASTICSEARCH_URL:9200"]
 setup.kibana:
     host: "KIBANA_URL:5601"
 ```
@@ -128,6 +128,112 @@ sudo systemctl start metricbeat
 ## HeartBeat
 Setting up and running heartbeat
 https://www.elastic.co/guide/en/beats/heartbeat/7.14/setting-up-and-running.html
+
+### Step 1: Install heartbeat
+```vstscli
+sudo apt-get install heartbeat-elastic
+sudo systemctl enable heartbeat-elastic
+```
+On Windows you need to install winpcap first
+https://www.winpcap.org
+
+
+### Step 2: Configure heartbeat to monitor elasticsearch and kibana
+Modify /etc/heartbeat/heartbeat.yml
+```yaml
+output.elasticsearch:
+    hosts: ["ELASTICSEARCH_URL:9200"]
+```
+
+Create /etc/heartbeat/monitors.d/tcp-demo.yml
+```yml
+- type: tcp
+  name: tcpdemo
+  enabled: true
+  schedule: "@every 5s"
+  hosts: ["192.168.2.37:9200", "192.168.2.37:5601"]
+  timeouts: 10s
+```
+
+Don't forget to testing configuration file with this commands
+```vstscli
+heartbeat test config
+heartbeat test output
+```
+
+### Step 5: Set up assets
+```vstscli
+heartbeat setup -e
+```
+
+### Step 6: Start heartbeat
+```vstscli
+sudo systemctl start heartbeat
+```
+
+### Step 7: Discover data from Kibana
+* Open browser and goto `http://<Host-IP-Address>:5601`
+* Goto Observability > Uptime 
+* Create index pattern for discover data
+
+### Step 8: Try to  monitor local services
+Add more monitoring
+```yaml
+- type: tcp
+  name: webserver
+  enabled: true
+  schedule: "@every 5s"
+  hosts: ["localhost"]
+  ports: [80]
+```
+
+### Step 9: Restart heartbeat to update configuration
+```vstscli
+sudo systemctl restart heartbeat-elastic
+```
+
+## PacketBeat
+https://www.elastic.co/guide/en/beats/packetbeat/7.14/setting-up-and-running.html
+
+### Step 1: Install and enable packetbeat
+```
+sudo apt-get install packetbeat
+sudo systemctl enable packetbeat
+```
+
+### Step 2: Configuring and start packetbeat
+Modify /etc/packetbeat/packetbeat.yml
+```yaml
+output.elasticsearch:
+    hosts: ["ELASTICSEARCH_URL:9200"]
+setup.kibana:
+    host: "KIBANA_URL:5601"
+```
+
+Don't forget to testing configuration file with this commands
+```vstscli
+packetbeat test config
+packetbeat test output
+```
+
+### Step 5: Set up assets
+```vstscli
+filebeat setup -e
+```
+
+### Step 6: Start filebeat
+```vstscli
+sudo systemctl start packetbeat
+```
+
+### Step 7: Discover data from Kibana
+* Open browser and goto `http://<Host-IP-Address>:5601`
+* Select index pattern `packetbeat-*`
+* See network traffic in dashboard `[PacketBeat] DNS Overview ECS`
+* Try to run this command
+```vstscli
+ping sanook.com
+```
 
 ## WinLogBeat
 https://www.elastic.co/guide/en/beats/winlogbeat/7.14/setting-up-and-running.html

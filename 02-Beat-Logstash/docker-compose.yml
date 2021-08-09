@@ -33,9 +33,9 @@ services:
     image: docker.elastic.co/logstash/logstash:7.14.0
     container_name: logstash
     volumes:
-      - ./settings/:/usr/share/logstash/config/
+      - ./settings/logstash-sample.conf:/usr/share/logstash/config/logstash-sample.conf
     ports:
-      - 5043:5043
+      - 5044:5044
     depends_on:
       - elasticsearch
 
