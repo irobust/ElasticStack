@@ -31,6 +31,8 @@ GET /_cat/indices?v
 PUT /sales
 ```
 
+https://www.elastic.co/blog/moving-from-types-to-typeless-apis-in-elasticsearch-7-0
+
 ### Add 'order' to 'sales' index
 ```
 PUT /sales/order/123
