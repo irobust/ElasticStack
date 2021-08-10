@@ -17,7 +17,7 @@ services:
     volumes:
       - data01:/usr/share/elasticsearch/data
     ports:
-      - 9200:9200
+      - 9200:9200/
 
   kibana:
     image: docker.elastic.co/kibana/kibana:7.14.0
@@ -33,7 +33,7 @@ services:
     image: docker.elastic.co/logstash/logstash:7.14.0
     container_name: logstash
     volumes:
-      - ./settings/logstash-sample.conf:/usr/share/logstash/config/logstash-sample.conf
+      - ./settings/logstash-sample.conf:/usr/share/logstash/pipeline/logstash.conf
     ports:
       - 5044:5044
     depends_on:
