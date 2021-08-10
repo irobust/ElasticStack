@@ -15,4 +15,19 @@ Vagrant.configure(2) do |config|
     end
   end
 
+  config.vm.define "elastic-server" do |server|
+    server.vm.provision "shell", path: "install-docker.sh"
+    config.vm.provision "file", source: "docker-compose.yml", destination: "docker-compose.yml"
+    config.vm.provision "file", source: "settings", destination: "settings"
+
+    server.vm.box = "generic/ubuntu2004"
+    server.vm.hostname = "elasticstack"
+    server.vm.network "private_network", ip: "172.42.42.10"
+    server.vm.provider "virtualbox" do |vb|
+      vb.name = "elastic-server"
+      vb.memory = 512
+      vb.cpus = 1
+    end
+  end
+
 end
