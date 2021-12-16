@@ -33,7 +33,7 @@ PUT /sales
 
 https://www.elastic.co/blog/moving-from-types-to-typeless-apis-in-elasticsearch-7-0
 
-### Add 'order' to 'sales' index
+### Add 'order' to 'sales' index with Type
 ```
 PUT /sales/order/123
 {
@@ -42,7 +42,18 @@ PUT /sales/order/123
 }
 ```
 
-### Retrieve document
+### Add 'order' to 'sales' index with Typeless
+```
+DELETE /sales
+
+PUT /sales/_doc/123
+{
+"orderID":"123",
+"orderAmount":"500"
+}
+```
+
+### Retrieve document with Type
 ```
 GET /sales/order/123
 ```
@@ -105,6 +116,7 @@ GET /bank
 3. Custom index pattern id (Optional)
 4. Edit fields mapping (Must verify it later)
 
+## Index mapping
 ### Load timestamp data
 #### Step 1: Create index
 ```
@@ -124,7 +136,33 @@ curl -X POST http://localhost:9200/securityinfo/_doc/ -H 'Content-Type: applicat
 '
 ```
 
-## Index mapping
+### Add index mapping to securityinfo
+#### Step 1: Mapping types to field
+```
+PUT /securityinfo-v2
+{
+  "mappings":{
+      "properties": {
+        "destination.ip": { "type": "ip"},
+        "destination.port": { "type": "integer" },
+        "message": { "type": "text" }
+      }
+  }
+}
+```
+
+#### Step 2: Input data through Dev Tools
+```
+POST /securityinfo-v2/_doc
+{
+    "@timestamp": "2021-01-05T10:10:10",
+    "message":  "Protocol Port MIs-Match",
+    "destination.ip": "192.168.1.56",
+    "destination.port": "888"
+}
+```
+
+
 ### Sample index mapping with GeoPoint
 #### Step 1: create mapping
 ```
@@ -193,39 +231,6 @@ GET my-index-000001/_search
       }
     }
   }
-}
-```
-### Add index mapping to securityinfo
-#### Step 1: Mapping types to field
-```
-PUT /securityinfo-v2
-{
-  "mappings":{
-      "properties": {
-        "destination.ip": { "type": "ip"},
-        "destination.port": { "type": "integer" },
-        "message": { "type": "text" }
-      }
-  }
-}
-```
-
-#### Step 2: Input data through Dev Tools
-```
-PUT /securityinfo-v2
-{
-    "@timestamp": "2021-01-05T10:10:10",
-    "message":  "Protocol Port MIs-Match",
-    "destination.ip": "192.168.1.56",
-    "destination.port": "888"
-}
-
-PUT /securityinfo-v2
-{
-    "@timestamp": "2021-01-05T10:10:10",
-    "message":  "Protocol Port MIs-Match",
-    "destination.ip": "192.168.1.55",
-    "destination.port": "888"
 }
 ```
 

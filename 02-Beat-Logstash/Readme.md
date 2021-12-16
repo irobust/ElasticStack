@@ -218,10 +218,10 @@ packetbeat test output
 
 ### Step 5: Set up assets
 ```vstscli
-filebeat setup -e
+paketbeat setup -e
 ```
 
-### Step 6: Start filebeat
+### Step 6: Start packetbeat
 ```vstscli
 sudo systemctl start packetbeat
 ```
@@ -234,6 +234,49 @@ sudo systemctl start packetbeat
 ```vstscli
 ping sanook.com
 ```
+
+## Auditbeat
+https://www.elastic.co/guide/en/beats/auditbeat/7.15/setting-up-and-running.html
+
+### Step 1: Install auditd
+```
+sudo apt-get install auditd
+```
+
+### Step 2: Install and enable auditbeat
+```
+sudo apt-get install auditbeat
+sudo systemctl enable packetbeat
+```
+
+### Step 2: Configuring and start auditbeat
+Modify /etc/auditbeat/auditbeat.yml
+```yaml
+output.elasticsearch:
+    hosts: ["ELASTICSEARCH_URL:9200"]
+setup.kibana:
+    host: "KIBANA_URL:5601"
+```
+
+Don't forget to testing configuration file with this commands
+```
+auditbeat test config
+auditbeat test output
+```
+
+### Step 5: Set up assets
+```vstscli
+auditbeat setup -e
+```
+
+### Step 6: Start auditbeat
+```vstscli
+sudo systemctl start auditbeat
+```
+
+### Step 7: Discover data from Kibana
+* Open browser and goto `http://<Kibana-IP-Address>:5601`
+* Select index pattern `auditbeat-*`
 
 ## WinLogBeat
 https://www.elastic.co/guide/en/beats/winlogbeat/7.14/setting-up-and-running.html
