@@ -102,6 +102,9 @@ POST _bulk
 ```
 curl -XPOST "http://localhost:9200/bank/account/_bulk?pretty" -H 'Content-Type: application/json' --data-binary "@data/accounts.jsonl"
 ```
+```
+curl --cacert /etc/elasticsearch/certs/http_ca.crt -u elastic:$ELASTIC_PASSWORD -X GET https://localhost:9200 -k
+```
 
 ### Check inside ElasticSearch
 ```
