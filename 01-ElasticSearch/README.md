@@ -5,9 +5,18 @@ Introduction to elasticsearch
 Start elasticsearch with docker compose
 ```
 cd 01-ElasticSearch
-docker-compose up -d
+sudo docker compose up -d
 ```
-
+## Create EnrollmentToken
+1. Create Enrollment Token on Elasticsearch
+     ```
+     sudo docker compose exec elasticsearch bin/elasticsearch-create-enrollment-token --scope kibana
+     ```
+2. Get Verification Code on Kibana
+     ```
+     sudo docker compose exec kibana bin/kibana-verification-code
+     ```
+     
 ## Explore elasticsearch
 Basic REST API to manage your cluster
 
