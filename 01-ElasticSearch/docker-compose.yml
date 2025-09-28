@@ -1,4 +1,3 @@
-version: '2.2'
 services:
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:9.1.4
@@ -10,6 +9,9 @@ services:
       - bootstrap.memory_lock=true
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
       - discovery.type=single-node
+      - ELASTIC_PASSWORD=elastic
+      - ELASTIC_USERNAME=elastic
+      - xpack.security.enabled=true
     ulimits:
       memlock:
         soft: -1
