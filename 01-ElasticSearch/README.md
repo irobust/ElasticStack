@@ -113,7 +113,7 @@ POST _bulk
 ## Loading sample data from elastic.co
 ### Load via curl, notice the endpoint and type
 ```
-curl -XPOST "http://localhost:9200/bank/account/_bulk?pretty" -H 'Content-Type: application/json' --data-binary "@data/accounts.jsonl"
+curl -u elastic:XXXX -X PUT "https://localhost:9200/account/_bulk?pretty" -H 'Content-Type: application/json' --data-binary "@accounts.jsonl" -k
 ```
 ```
 curl --cacert /etc/elasticsearch/certs/http_ca.crt -u elastic:$ELASTIC_PASSWORD -X GET https://localhost:9200 -k
