@@ -16,6 +16,10 @@ sudo docker compose up -d
      ```
      sudo docker compose exec kibana bin/kibana-verification-code
      ```
+3. Setup Passwords
+   ```
+     sudo docker compose exec elasticsearch bin/elasticsearch-setup-passwords auto
+   ```
      
 ## Explore elasticsearch
 Basic REST API to manage your cluster
