@@ -20,6 +20,18 @@ docker-compose up -d
 Setting up and running filebeat
 https://www.elastic.co/guide/en/beats/filebeat/current/setting-up-and-running.html
 
+### Step 0: Generate Certificate
+```
+// Get Certificate Authority
+sudo docker compose exec -it elasticsearch bin/elasticsearch-certutil ca
+sudo docker compose cp elasticsearch:/usr/share/elasticsearch/elastic-stack-ca.p12 /home/vagrant
+
+// Get Client Certificate
+sudo docker compose exec -it elasticsearch bin/elasticsearch-certutil cert --ca elastic-stack-ca.p12
+sudo docker composr cp elasticsearch:/usr/share/elasticsearch/elastic-certificates.p12 /home/vagrant
+sudo mv elastic-certificates.p12 /vagrant
+```
+
 ### Step 1: Install and enable filebeat
 ```
 sudo apt-get install filebeat
@@ -291,6 +303,34 @@ https://www.elastic.co/guide/en/beats/winlogbeat/7.14/setting-up-and-running.htm
 # How to install and configuring Logstash
 ## Instrmenting Linux Server
 Loading SYSLOG data to formatting with logstash
+
+### Step 0: Generate Certificate
+```
+// Get Certificate Authority (Elasticsearch)
+sudo docker compose exec -it elasticsearch bin/elasticsearch-certutil ca --pem
+sudo docker compose cp elasticsearch:/usr/share/elasticsearch/elastic-stack-ca.zip /home/vagrant
+sudo unzip elastic-stack-ca.zip
+sudo mv elastic-stack-ca /vagrant
+
+// Get Logstash Certificate
+sudo docker compose cp ca elasticsearch:/usr/share/elasticsearch
+sudo docker compose exec -it elasticsearch bin/elasticsearch-certutil cert --ca-cert ca/ca.crt --ca-key ca/ca.key \
+       --ip [LOGSTASH_IP] --pem --name logstash
+sudo docker compose cp elasticsearch:/usr/share/elasticsearch/logstash-cert.zip /home/vagrant
+sudo unzip logstash-cert.zip
+cd logstash-cert
+openssl pkcs8 -inform PEM -in logstash.key -topk8 -nocrypt -outform PEM -out logstash.pkcs8.key
+sudo docker compose cp logstash-cert logstash:/usr/share/logstash
+sudo dokcer compose cp ca logstash:/usr/share/logstash
+sudo cp logstash-cert /vagrant
+
+// Get Client Certificate
+sudo docker compose exec -it elasticsearch bin/elasticsearch-certutil cert --ca-crt ca/ca.crt --pem --name client
+sudo docker composr cp elasticsearch:/usr/share/elasticsearch/client-cert.zip /home/vagrant
+sudo unzip client-cert.zip
+sudo mv client-cert /vagrant
+```
+
 ### Step 1: Install and enable filebeat
 ```
 sudo apt-get install filebeat
@@ -300,6 +340,7 @@ sudo systemctl enable filebeat
 ### Step 2: Configuring and start filebeat
 Modify /etc/filebeat/filebeat.yml
 ```yaml
+enabled: true
 paths:
     - /var/log/syslog
 document_type: syslog
@@ -310,6 +351,12 @@ fields:
 
 output.logstash:
     hosts: ["LOGSTASH_URL:5043"]
+    ssl:
+       enabled: true
+       verification_mode: none
+       certificate_authorities: ["/vagrant/ca/ca.crt"]
+       certificate: "/vagrant/logstash/logstash.crt"
+       key: "/vagrant/logstash/logstash.pkcs8.key"
 setup.kibana:
     host: "KIBANA_URL:5601"
 ```
@@ -319,13 +366,40 @@ Don't forget to testing configuration file with this commands
 filebeat test config
 filebeat test output
 ```
+### Step 3 Update Logstash Configuration
+#### Step 3.1: Update TLS Connection
+```
+input {
+  beats {
+    port => 5044
+    ssl_enabled => true
+    ssl_certificate_authorities => ["/usr/share/logstash/ca/ca.crt"]
+    ssl_certificate => "/usr/share/logstash/logstash/logstash.crt"
+    ssl_key => "/usr/share/logstash/logstash/logstash.pkcs8.key"
+    ssl_client_authentication => "required"
+  }
+}
 
-### Step 3: Update Logstash configuration(Beat.conf)
-```vstscli
-input{
-    beats{
-        port => 5043
+output {
+  elasticsearch{
+        hosts => ["elasticsearch:9200"]
+        index => "logstash-%{[@metadata][beat]}-%{+YYYY.MM.dd}"
+        user => elastic
+        password => [ELASTIC_PASSWORD]
     }
+}
+```
+#### Step 3.2: Add filter
+```vstscli
+input {
+  beats {
+    port => 5044
+    ssl_enabled => true
+    ssl_certificate_authorities => ["/usr/share/logstash/ca/ca.crt"]
+    ssl_certificate => "/usr/share/logstash/logstash/logstash.crt"
+    ssl_key => "/usr/share/logstash/logstash/logstash.pkcs8.key"
+    ssl_client_authentication => "required"
+  }
 }
 filter{
     if [type] == "syslog" {
@@ -337,11 +411,12 @@ filter{
         }
     }
 }
-output{
-    elasticsearch{
-        hosts => ["ELASTICSEARCH_URL:9200"],
-        index => "%{[@metadata][beat]}-%{+YYYY.MM.dd}",
-        document_type => "%{[@metadata][type]}"
+output {
+  elasticsearch{
+        hosts => ["elasticsearch:9200"]
+        index => "logstash-%{[@metadata][beat]}-%{+YYYY.MM.dd}"
+        user => elastic
+        password => [ELASTIC_PASSWORD]
     }
 }
 ```
