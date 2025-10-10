@@ -33,9 +33,16 @@ tags: ["us-west-01"]
 fields:
     environment: staging
 output.elasticsearch:
-    hosts: ["ELASTICSEARCH_URL:9200"]
-    username: "elastic"
-    password: "****"
+  hosts: ["ELASTIC_IP_ADDRESS:9200"]
+  ssl:
+     enabled: true
+     verification_mode: none
+     keystore.path: "/vagrant/elastic-certificates.p12"
+     truststore.path: "/vagrant/elastic-certificates.p12"
+
+  username: "elastic"
+  password: "****"
+
 setup.kibana:
     host: "KIBANA_URL:5601"
 ```
